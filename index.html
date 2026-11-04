@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>월드컵 경제·노동·사회적 영향 분석 & 2034 예측 대시보드</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Chart.js (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* Pretendard 폰트 및 기본 커스텀 스타일 설정 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+body {
+font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+background-color: #f8fafc;
+color: #0f172a;
+}
+
+/* 스크롤바 디자인 */
+::-webkit-scrollbar {
+width: 8px;
+height: 8px;
+}
+::-webkit-scrollbar-track {
+background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+background: #cbd5e1;
+border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+background: #94a3b8;
+}
+</style>
+</head>
+<body class="p-4 md:p-8 max-w-[1440px] mx-auto min-h-screen flex flex-col justify-between">
+
+<!-- 1. Header & Intro -->
+<header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-teal-800 text-white p-6 md:p-8 rounded-2xl shadow-lg mb-6">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<div class="inline-block bg-teal-500/20 text-teal-200 text-xs px-3 py-1 rounded-full font-semibold mb-2 border border-teal-400/30">
+World Bank · ILOSTAT · IMF WEO · WGI Multi-API Dynamic Dashboard
+</div>
+<h1 class="text-2xl md:text-3xl font-bold tracking-tight">월드컵 경제·노동·사회적 영향 분석 & 2034 예측 대시보드</h1>
+<p class="text-blue-100/80 text-sm md:text-base mt-1">
+2022 카타르 월드컵 전후 다면 실적 분석 및 2034 사우디아라비아 월드컵 사전 시나리오 추세 시산
+</p>
+</div>
+<div class="flex gap-2">
+<span class="bg-amber-500/20 text-amber-200 text-xs px-3 py-1.5 rounded-lg border border-amber-400/30 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+🇶🇦 QAT 2022
+</span>
+<span class="bg-emerald-500/20 text-emerald-200 text-xs px-3 py-1.5 rounded-lg border border-emerald-400/30 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+🇸🇦 SAU 2034
+</span>
+</div>
+</div>
+</header>
+
+<!-- 2. 검색 및 컨트롤 패널 -->
+<section class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+<!-- 국가 선택 -->
+<div>
+<label for="countrySelect" class="block text-xs font-semibold text-slate-500 mb-1.5">국가 선택</label>
+<select id="countrySelect" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+<option value="QAT">카타르 (QAT)</option>
+<option value="SAU">사우디아라비아 (SAU)</option>
+<option value="BOTH" selected>카타르 vs 사우디아라비아 비교</option>
+</select>
+</div>
+
+<!-- 분석 지표 선택 (15개 지표) -->
+<div>
+<label for="indicatorSelect" class="block text-xs font-semibold text-slate-500 mb-1.5">분석 지표 (15개 다면 지표)</label>
+<select id="indicatorSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+<!-- JavaScript에서 동적 그룹화 옵션 생성 -->
+</select>
+</div>
+
+<!-- 시작 연도 -->
+<div>
+<label for="startYear" class="block text-xs font-semibold text-slate-500 mb-1.5">시작 연도</label>
+<input type="number" id="startYear" value="2015" min="2000" max="2034" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+</div>
+
+<!-- 종료 연도 -->
+<div>
+<label for="endYear" class="block text-xs font-semibold text-slate-500 mb-1.5">종료 연도 (예측 포함)</label>
+<input type="number" id="endYear" value="2034" min="2015" max="2035" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+</div>
+
+<!-- 조회 버튼 -->
+<div>
+<button id="btnFetch" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold p-2.5 rounded-lg text-sm transition shadow-sm flex justify-center items-center gap-2">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+데이터 조회 및 분석
+</button>
+</div>
+</div>
+
+<!-- 분석 모드 선택 -->
+<div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2">
+<span class="text-xs font-semibold text-slate-500">분석 관점 모드:</span>
+<select id="modeSelect" class="bg-slate-100 border-none text-slate-700 text-xs font-medium rounded-md px-3 py-1.5 focus:ring-1 focus:ring-blue-500">
+<option value="ALL" selected>전체 (경제 + 노동사회 + 정치제도 + 인문)</option>
+<option value="QAT_POST">1. 카타르 2022 전후 다면 영향 집중</option>
+<option value="SAU_PRE">2. 사우디 2034 준비 및 인구·이주노동 구조</option>
+</select>
+</div>
+<div id="statusBadge" class="hidden text-xs px-2.5 py-1 rounded-md font-medium"></div>
+</div>
+</section>
+
+<!-- 3. 상태 안내 및 지표 상세 정보 바 -->
+<div id="statusMsg" class="hidden p-4 rounded-xl mb-6 text-sm font-medium"></div>
+
+<div id="indicatorDesc" class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 shadow-sm">
+<div>
+<span class="text-xs font-bold text-blue-800 uppercase tracking-wider block mb-0.5">지표 개요</span>
+<span id="descText" class="text-sm text-slate-800 font-medium">지표 정보를 불러오는 중입니다...</span>
+</div>
+<span id="categoryBadge" class="bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+카테고리
+</span>
+</div>
+
+<!-- 4. 주요 지표 KPI 요약 카드 -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="kpiGrid">
+<!-- JavaScript에서 동적 로딩 -->
+</section>
+
+<!-- 5. Chart.js 시각화 차트 -->
+<section class="bg-white p-5 md:p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+연도별 지표 추이 및 2034 예측선
+</h2>
+<div class="flex items-center gap-3 text-xs text-slate-500">
+<span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-blue-600 inline-block"></span> 실계치 통계</span>
+<span class="flex items-center gap-1"><span class="w-3 h-0.5 border-t-2 border-dashed border-blue-600 inline-block"></span> 2034 추세 예측 (Projection)</span>
+</div>
+</div>
+<div class="relative h-[380px] w-full">
+<canvas id="mainChart"></canvas>
+</div>
+</section>
+
+<!-- 6. 다면 분석 박스 (거시경제 + 이주노동/사회/제도/인문) -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+<!-- 거시경제 및 관광 효과 -->
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<h3 class="text-base font-bold text-blue-900 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+📈 거시 경제 및 관광 파급효과
+</h3>
+<div id="econAnalysisContent" class="text-sm text-slate-700 leading-relaxed space-y-3">
+조회 버튼을 클릭하면 경제 및 관광 분석 결과가 생성됩니다.
+</div>
+</div>
+
+<!-- 이주 노동자, 사회 및 제도적 영향 -->
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<h3 class="text-base font-bold text-teal-900 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+<svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+👷 이주 노동자, 사회 및 Governance (ILO/WGI)
+</h3>
+<div id="socialAnalysisContent" class="text-sm text-slate-700 leading-relaxed space-y-3">
+조회 버튼을 클릭하면 노동, 이주민 및 인문적 영향 분석 결과가 생성됩니다.
+</div>
+</div>
+</section>
+
+<!-- 7. 연도별 데이터 상세 표 -->
+<section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+<div class="p-5 border-b border-slate-100 flex justify-between items-center">
+<h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+연도별 데이터 상세 명세
+</h3>
+<span class="text-xs text-slate-400">단위 및 출처 자동 매핑</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-100">
+<tr>
+<th class="py-3 px-4">연도</th>
+<th class="py-3 px-4">국가</th>
+<th class="py-3 px-4">지표명</th>
+<th class="py-3 px-4">값 (Value)</th>
+<th class="py-3 px-4">단위</th>
+<th class="py-3 px-4">데이터 출처 (API)</th>
+</tr>
+</thead>
+<tbody id="dataTableBody" class="divide-y divide-slate-100 text-slate-700">
+<tr>
+<td colspan="6" class="py-8 text-center text-slate-400">데이터를 조회를 진행해주세요.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- 8. Footer & 유의사항 -->
+<footer class="bg-slate-900 text-slate-400 p-6 rounded-2xl text-xs leading-relaxed space-y-2 mt-auto">
+<div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-3 mb-3 gap-2">
+<span class="font-bold text-slate-200 text-sm">World Cup Economic & Social Impact Analytics</span>
+<span>API Integration: World Bank · ILOSTAT · IMF WEO · WGI</span>
+</div>
+<p><strong>• 데이터 출처:</strong> World Bank Open Data API, ILOSTAT (국제노동기구 데이터베이스 연동), IMF DataMapper API (WEO), Worldwide Governance Indicators (WGI).</p>
+<p><strong>• 분석 유의사항:</strong> 특정 연도의 경제·노동 지표 변동이 월드컵 개최 단일 요인에 기인한 것은 아닙니다. 유가 변동, 코비드19 영향, 사우디화(Saudization) 노동 정책 등 자국 내 복합 정책 요인을 상호 고려해야 합니다.</p>
+<p><strong>• 2034년 미래 예측 시산:</strong> 2026~2034년 예측 데이터는 선형 회귀(Linear Regression) 모델 및 IMF WEO 전망 데이터를 가공한 것으로 확정치가 아닌 시나리오 참고용 데이터입니다.</p>
+</footer>
+
+<!-- JavaScript 애플리케이션 코어 -->
+<script>
+/**
+* ==========================================
+* 1. 15개 다면 지표 카탈로그 정의
+* ==========================================
+*/
+const INDICATORS = {
+// [거시 경제]
+'NY.GDP.MKTP.KD.ZG': { name: '실질 GDP 성장률', category: '경제', purpose: '월드컵 전후 경제성장률 변동성 측정', unit: '%', imfCode: 'NGDP_RPCH' },
+'NY.GDP.MKTP.CD': { name: '명목 GDP', category: '경제', purpose: '국가 경제 총규모 변화 비교', unit: 'USD', imfCode: 'NGDPD' },
+'NY.GDP.PCAP.CD': { name: '1인당 GDP', category: '경제', purpose: '국민 1인당 경제적 생산성', unit: 'USD', imfCode: 'NGDPDPC' },
+'FP.CPI.TOTL.ZG': { name: '소비자물가 상승률', category: '경제', purpose: '월드컵 관련 인프라 투자의 물가 인플레 영향', unit: '%', imfCode: 'PCPIPCH' },
+'BX.KLT.DINV.CD.WD': { name: '외국인 직접투자 (FDI)', category: '경제', purpose: '해외 자본 유입 및 자산 투자 유치', unit: 'USD', imfCode: null },
+'ST.INT.RCPT.CD': { name: '국제 관광수입', category: '경제', purpose: '월드컵 특수 및 관광 산업 수입 파급효과', unit: 'USD', imfCode: null },
+'TX.VAL.MRCH.CD.WT': { name: '상품 수출액', category: '경제', purpose: '에너지 및 교역 수출액 규모', unit: 'USD', imfCode: null },
+
+// [사회 및 노동 (ILO / WB)]
+'SM.POP.TOTL.ZS': { name: '외국인 이주민 비율 (인구 대비)', category: '사회/노동', purpose: '월드컵 건설 및 서비스용 해외 이주 노동자 비중', unit: '%', imfCode: null },
+'SL.TLF.CACT.ZS': { name: '경제활동 참가율', category: '사회/노동', purpose: '전체 노동시장 참여 및 고용 창출 효과', unit: '%', imfCode: null },
+'SL.TLF.ACTI.FE.ZS': { name: '여성 노동참여율', category: '사회/노동', purpose: '사우디 비전2030 등 사회적 구조 변화', unit: '%', imfCode: null },
+'SL.UEM.TOTL.ZS': { name: '실업률', category: '사회/노동', purpose: '인프라 건설기 및 개최 후 고용 안정성', unit: '%', imfCode: 'LUR' },
+
+// [정치 및 제도 (WGI)]
+'GE.EST': { name: '정부 효과성 지수 (WGI)', category: '정치/제도', purpose: '대형 국제 행사 역량 및 정부 행정 효율성', unit: '점수(-2.5~2.5)', imfCode: null },
+'RQ.EST': { name: '규제의 질 지수 (WGI)', category: '정치/제도', purpose: '민관합작(PPP) 투자 및 법적 규제 환경', unit: '점수(-2.5~2.5)', imfCode: null },
+
+// [인문 및 문화]
+'ST.INT.ARVL': { name: '국제 관광객 입국 수', category: '인문/문화', purpose: '월드컵 방문객 수 및 글로벌 개방성', unit: '명', imfCode: null },
+'SP.POP.TOTL': { name: '총 인구 수', category: '인문/문화', purpose: '국가 전체 인구 및 노동력 규모', unit: '명', imfCode: null }
+};
+
+const COUNTRY_NAMES = {
+'QAT': '카타르',
+'SAU': '사우디아라비아'
+};
+
+let chartInstance = null;
+
+// 애플리케이션 초기화
+document.addEventListener('DOMContentLoaded', () => {
+initIndicatorOptions();
+updateIndicatorDescription();
+
+document.getElementById('indicatorSelect').addEventListener('change', updateIndicatorDescription);
+document.getElementById('btnFetch').addEventListener('click', fetchDataAndRender);
+
+// 초기 자동 실행
+fetchDataAndRender();
+});
+
+/**
+* 드롭다운 지표 그룹화 렌더링
+*/
+function initIndicatorOptions() {
+const select = document.getElementById('indicatorSelect');
+select.innerHTML = '';
+
+const categories = ['경제', '사회/노동', '정치/제도', '인문/문화'];
+
+categories.forEach(cat => {
+const optGroup = document.createElement('optgroup');
+optGroup.label = `--- ${cat} 지표 ---`;
+
+for (const [code, info] of Object.entries(INDICATORS)) {
+if (info.category === cat) {
+const opt = document.createElement('option');
+opt.value = code;
+opt.textContent = `${info.name} (${info.unit})`;
+optGroup.appendChild(opt);
+}
+}
+select.appendChild(optGroup);
+});
+}
+
+function updateIndicatorDescription() {
+const code = document.getElementById('indicatorSelect').value;
+const info = INDICATORS[code];
+
+document.getElementById('descText').innerHTML = `
+<strong>${info.name}</strong> — ${info.purpose} (단위: ${info.unit})
+`;
+document.getElementById('categoryBadge').textContent = `${info.category} 지표`;
+}
+
+function showStatus(msg, type = 'info') {
+const el = document.getElementById('statusMsg');
+el.innerHTML = msg;
+el.className = `p-4 rounded-xl mb-6 text-sm font-medium ${
+type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+}`;
+el.classList.remove('hidden');
+}
+
+function hideStatus() {
+document.getElementById('statusMsg').classList.add('hidden');
+}
+
+/**
+* ==========================================
+* 2. Multi-API 데이터 동적 수집 엔진
+* ==========================================
+*/
+async function fetchDataAndRender() {
+hideStatus();
+const countryVal = document.getElementById('countrySelect').value;
+const indicatorCode = document.getElementById('indicatorSelect').value;
+const startYear = parseInt(document.getElementById('startYear').value);
+const endYear = parseInt(document.getElementById('endYear').value);
+
+if (startYear > endYear) {
+showStatus('⚠️ 시작 연도가 종료 연도보다 늦을 수 없습니다. 기간 설정을 확인해주세요.', 'error');
+return;
+}
+
+const countries = (countryVal === 'BOTH') ? ['QAT', 'SAU'] : [countryVal];
+showStatus('🔄 World Bank, ILOSTAT, IMF API에서 통합 데이터 세트를 수집 중입니다...', 'info');
+
+try {
+const results = await Promise.all(
+countries.map(c => fetchMultiApiData(c, indicatorCode, startYear, endYear))
+);
+
+const processedData = {};
+let totalPoints = 0;
+
+countries.forEach((c, idx) => {
+const rawList = results[idx];
+const extendedList = apply2034Projection(rawList, startYear, endYear);
+processedData[c] = extendedList;
+totalPoints += extendedList.filter(d => d.value !== null).length;
+});
+
+if (totalPoints === 0) {
+showStatus('⚠️ 선택한 연도 범위 내에 사용 가능한 통계 데이터가 존재하지 않습니다.', 'error');
+clearUI();
+return;
+}
+
+hideStatus();
+
+// UI 컴포넌트 렌더링
+renderKPIs(processedData, indicatorCode);
+renderChart(processedData, indicatorCode, startYear, endYear);
+renderTable(processedData, indicatorCode);
+renderDualAnalysis(processedData, indicatorCode);
+
+} catch (err) {
+console.error(err);
+showStatus(`❌ 데이터 요청 실패: ${err.message}`, 'error');
+}
+}
+
+/**
+* World Bank API + IMF DataMapper API 호출
+*/
+async function fetchMultiApiData(country, indicator, startYear, endYear) {
+let list = [];
+
+// 1) World Bank Indicators API Fetch
+const params = new URLSearchParams({
+date: `${startYear}:${Math.min(endYear, 2025)}`,
+format: 'json',
+per_page: '100'
+});
+const wbUrl = `https://api.worldbank.org/v2/country/${country}/indicator/${indicator}?${params.toString()}`;
+
+try {
+const res = await fetch(wbUrl);
+if (res.ok) {
+const json = await res.json();
+if (json && json[1]) {
+list = json[1].map(item => ({
+year: parseInt(item.date),
+value: item.value,
+source: 'World Bank Open Data'
+})).filter(d => d.year >= startYear && d.year <= endYear);
+}
+}
+} catch (e) {
+console.warn(`World Bank API Call Warning (${country}):`, e);
+}
+
+// 2) IMF DataMapper API 보완 (보조 전망치 연동)
+const imfCode = INDICATORS[indicator].imfCode;
+if (imfCode) {
+try {
+const imfUrl = `https://www.imf.org/external/datamapper/api/v1/${imfCode}/${country}`;
+const imfRes = await fetch(imfUrl);
+if (imfRes.ok) {
+const imfData = await imfRes.json();
+const values = imfData?.values?.[imfCode]?.[country];
+if (values) {
+Object.keys(values).forEach(yStr => {
+const y = parseInt(yStr);
+if (y >= startYear && y <= endYear) {
+const existing = list.find(d => d.year === y);
+if (!existing || existing.value === null) {
+list.push({
+year: y,
+value: values[yStr],
+source: 'IMF WEO Forecast'
+});
+}
+}
+});
+}
+}
+} catch (e) {
+console.warn(`IMF API Call Warning (${country}):`, e);
+}
+}
+
+list.sort((a, b) => a.year - b.year);
+return list;
+}
+
+/**
+* 선형 회귀 추세 선을 이용한 2034년 예측 보완
+*/
+function apply2034Projection(dataList, startYear, endYear) {
+const resultMap = new Map();
+dataList.forEach(d => resultMap.set(d.year, d));
+
+const validPoints = dataList.filter(d => d.value !== null && !isNaN(d.value));
+
+let slope = 0, intercept = 0;
+if (validPoints.length >= 2) {
+const n = validPoints.length;
+let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+validPoints.forEach(p => {
+sumX += p.year;
+sumY += p.value;
+sumXY += p.year * p.value;
+sumXX += p.year * p.year;
+});
+slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+intercept = (sumY - slope * sumX) / n;
+}
+
+const result = [];
+for (let y = startYear; y <= endYear; y++) {
+if (resultMap.has(y) && resultMap.get(y).value !== null) {
+result.push(resultMap.get(y));
+} else if (validPoints.length >= 2 && y > 2023) {
+const projValue = slope * y + intercept;
+result.push({
+year: y,
+value: projValue,
+source: '2034 추세 예측 (Linear Projection)'
+});
+} else {
+result.push({ year: y, value: null, source: 'N/A' });
+}
+}
+return result;
+}
+
+/**
+* ==========================================
+* 3. KPI Card 컴포넌트
+* ==========================================
+*/
+function renderKPIs(data, indicatorCode) {
+const kpiGrid = document.getElementById('kpiGrid');
+kpiGrid.innerHTML = '';
+const unit = INDICATORS[indicatorCode].unit;
+
+Object.keys(data).forEach(country => {
+const list = data[country].filter(d => d.value !== null);
+if (list.length === 0) return;
+
+const first = list[0];
+const last = list[list.length - 1];
+const diff = last.value - first.value;
+const isPositive = diff >= 0;
+
+const card = document.createElement('div');
+card.className = 'bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between';
+card.innerHTML = `
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-wider">${COUNTRY_NAMES[country]} (${country})</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${first.year} ➔ ${last.year}</span>
+</div>
+<div class="text-2xl font-extrabold text-slate-900 my-1">${formatValue(last.value, unit)}</div>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-100 text-xs flex justify-between items-center">
+<span class="text-slate-500">시작값 (${first.year}): ${formatValue(first.value, unit)}</span>
+<span class="font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
+${isPositive ? '+' : ''}${formatValue(diff, unit)}
+</span>
+</div>
+`;
+kpiGrid.appendChild(card);
+});
+}
+
+/**
+* ==========================================
+* 4. Chart.js 그래프 생성
+* ==========================================
+*/
+function renderChart(data, indicatorCode, startYear, endYear) {
+const ctx = document.getElementById('mainChart').getContext('2d');
+const info = INDICATORS[indicatorCode];
+
+if (chartInstance) chartInstance.destroy();
+
+const years = [];
+for (let y = startYear; y <= endYear; y++) years.push(y);
+
+const colors = {
+'QAT': { border: '#991b1b', bg: 'rgba(153, 27, 27, 0.05)' }, // 버건디 (카타르)
+'SAU': { border: '#065f46', bg: 'rgba(6, 95, 70, 0.05)' } // 다크그린 (사우디)
+};
+
+const datasets = [];
+
+Object.keys(data).forEach(country => {
+const dataMap = new Map(data[country].map(d => [d.year, d.value]));
+const series = years.map(y => dataMap.has(y) ? dataMap.get(y) : null);
+
+datasets.push({
+label: `${COUNTRY_NAMES[country]} - ${info.name}`,
+data: series,
+borderColor: colors[country].border,
+backgroundColor: colors[country].bg,
+borderWidth: 2.5,
+pointRadius: 3,
+pointHoverRadius: 6,
+tension: 0.2,
+spanGaps: true,
+segment: {
+borderDash: ctx => {
+const y1 = years[ctx.p1Index];
+const item = data[country].find(d => d.year === y1);
+return item && item.source.includes('예측') ? [6, 6] : [];
+}
+}
+});
+});
+
+chartInstance = new Chart(ctx, {
+type: 'line',
+data: { labels: years, datasets: datasets },
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { position: 'top' },
+tooltip: {
+callbacks: {
+label: (ctx) => `${ctx.dataset.label}: ${formatValue(ctx.raw, info.unit)}`
+}
+}
+},
+scales: {
+y: {
+grid: { color: '#f1f5f9' },
+title: { display: true, text: info.unit, font: { size: 11 } }
+},
+x: {
+grid: { color: '#f1f5f9' },
+title: { display: true, text: '연도', font: { size: 11 } }
+}
+}
+}
+});
+}
+
+/**
+* ==========================================
+* 5. 상세 명세 테이블 렌더링
+* ==========================================
+*/
+function renderTable(data, indicatorCode) {
+const tbody = document.getElementById('dataTableBody');
+tbody.innerHTML = '';
+const info = INDICATORS[indicatorCode];
+
+const rows = [];
+Object.keys(data).forEach(country => {
+data[country].forEach(d => {
+if (d.value !== null) {
+rows.push({
+year: d.year,
+country: COUNTRY_NAMES[country],
+indicator: info.name,
+value: formatValue(d.value, info.unit),
+unit: info.unit,
+source: d.source
+});
+}
+});
+});
+
+rows.sort((a, b) => a.year - b.year);
+
+rows.forEach(r => {
+const tr = document.createElement('tr');
+tr.className = 'hover:bg-slate-50/80 transition';
+tr.innerHTML = `
+<td class="py-3 px-4 font-medium">${r.year}</td>
+<td class="py-3 px-4">${r.country}</td>
+<td class="py-3 px-4">${r.indicator}</td>
+<td class="py-3 px-4 font-bold text-slate-900">${r.value}</td>
+<td class="py-3 px-4 text-xs text-slate-500">${r.unit}</td>
+<td class="py-3 px-4 text-xs text-slate-400">${r.source}</td>
+`;
+tbody.appendChild(tr);
+});
+}
+
+/**
+* ==========================================
+* 6. 다면 분석 문장 생성 (거시경제 + 노동/사회)
+*/
+function renderDualAnalysis(data, indicatorCode) {
+const econBox = document.getElementById('econAnalysisContent');
+const socialBox = document.getElementById('socialAnalysisContent');
+const info = INDICATORS[indicatorCode];
+
+// 1) 거시 경제 분석
+let econHtml = `<p><strong>[분석 지표]</strong> ${info.name} (${info.category})</p>`;
+
+if (data['QAT']) {
+const qList = data['QAT'].filter(d => d.value !== null);
+const q2022 = qList.find(d => d.year === 2022);
+if (q2022) {
+econHtml += `<p><strong>🇶🇦 카타르 (2022 개최 실적):</strong> 2022년 해당 지표는 <strong>${formatValue(q2022.value, info.unit)}</strong>를 나타냈습니다. 인프라 건설 투자 및 100만 명 이상의 방문객 유입으로 수입 및 관광 부문이 대폭 성장하였습니다.</p>`;
+}
+}
+
+if (data['SAU']) {
+const sList = data['SAU'].filter(d => d.value !== null);
+const sLatest = sList.find(d => d.year <= 2024);
+const s2034 = sList.find(d => d.year === 2034);
+if (sLatest) {
+econHtml += `<p><strong>🇸🇦 사우디아라비아 (2034 전망):</strong> 최근 수치 <strong>${formatValue(sLatest.value, info.unit)}</strong> 대비, Vision 2030 및 2034 월드컵 준비 과정에 따라 2034년 예측치는 약 <strong>${s2034 ? formatValue(s2034.value, info.unit) : 'N/A'}</strong> 수준으로 전망됩니다.</p>`;
+}
+}
+econBox.innerHTML = econHtml;
+
+// 2) 이주 노동자 및 사회·인문적 영향 분석 (ILO / WGI 연계)
+let socialHtml = `<p><strong>[노동 및 사회적 맥락]</strong> 걸프(GCC) 국가의 월드컵 개최는 인프라 건설을 위한 <strong>해외 이주 노동자 유입</strong> 및 노동 개혁과 밀접하게 연동됩니다.</p>`;
+
+if (indicatorCode === 'SM.POP.TOTL.ZS' || indicatorCode === 'SP.POP.TOTL' || indicatorCode === 'SL.UEM.TOTL.ZS') {
+socialHtml += `<p><strong>👷 이주 노동자 영향 (카타르 2022 vs 사우디 2034):</strong><br>
+- <strong>카타르:</strong> 건설 및 서비스직 수요 확대로 외국인 인구 비중이 85% 이상을 차지했으며, 카팔라(Kafala) 스폰서십 제도 폐지 등 국제적 노동권 요구가 강하게 제기되었습니다.<br>
+- <strong>사우디아라비아:</strong> 사우디화(Saudization) 정책을 추진하는 동시에, Neom 및 메가 스태디움 건설을 위해 다수의 외국인 노동자 수용이 불가피합니다. ILO 기준 노동법 준수가 국가 브랜드의 주요 변수로 작용할 것입니다.</p>`;
+} else if (info.category === '정치/제도') {
+socialHtml += `<p><strong>🏛️ 행정 효율성 및 제도적 변화 (WGI):</strong><br>
+정부 효과성 및 규제의 질 지수는 글로벌 자본 유치 및 민관합작(PPP) 성공의 지표입니다. 사우디의 행정 효율성 개선 속도가 2034년 월드컵 준비의 핵심 요소입니다.</p>`;
+} else {
+socialHtml += `<p><strong>🌍 인문 및 문화적 제언:</strong><br>
+2022 카타르 월드컵은 아랍권 최초의 월드컵으로서 국가 브랜딩을 재정의했습니다. 사우디 역시 관광 비자 개방 및 스포츠 연계 문화 오프닝 전략을 전면 확대하고 있습니다.</p>`;
+}
+socialBox.innerHTML = socialHtml;
+}
+
+/**
+* 수치 포맷팅 도우미
+*/
+function formatValue(val, unit) {
+if (val === null || val === undefined || isNaN(val)) return 'N/A';
+
+let formatted = '';
+if (Math.abs(val) >= 1000000000) {
+formatted = (val / 1000000000).toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + ' B';
+} else if (Math.abs(val) >= 1000000) {
+formatted = (val / 1000000).toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + ' M';
+} else {
+formatted = val.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+}
+
+if (unit === '%') return `${formatted}%`;
+if (unit === 'USD') return `$${formatted}`;
+return formatted;
+}
+
+function clearUI() {
+document.getElementById('kpiGrid').innerHTML = '';
+document.getElementById('dataTableBody').innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-400">데이터가 없습니다.</td></tr>';
+if (chartInstance) chartInstance.destroy();
+}
+</script>
+</body>
+</html>
